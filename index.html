@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pokémon Champions Battle Tracker</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --color-background-primary: #ffffff;
+            --color-background-secondary: #f1efe8;
+            --color-text-primary: #1a1a1a;
+            --color-text-secondary: #5f5e5a;
+            --color-text-tertiary: #888780;
+            --color-border-tertiary: rgba(0, 0, 0, 0.15);
+            --color-border-secondary: rgba(0, 0, 0, 0.3);
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
+            --font-sans: system-ui, sans-serif;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-background-primary: #1e1e1c;
+                --color-background-secondary: #2c2c2a;
+                --color-text-primary: #f0ede8;
+                --color-text-secondary: #b4b2a9;
+                --color-text-tertiary: #888780;
+                --color-border-tertiary: rgba(255, 255, 255, 0.15);
+                --color-border-secondary: rgba(255, 255, 255, 0.3);
+            }
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--color-background-primary);
+            color: var(--color-text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .tracker {
+            width: 100%;
+            max-width: 620px;
+        }
+
+        .header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: -0.3px;
+        }
+
+        .header-date {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--color-background-secondary);
+            border-radius: var(--border-radius-md);
+            padding: 0.875rem 1rem;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 500;
+        }
+
+        .stat-value.green {
+            color: #3B6D11;
+        }
+
+        .stat-value.red {
+            color: #A32D2D;
+        }
+
+        .stat-value.amber {
+            color: #854F0B;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .stat-value.green {
+                color: #C0DD97;
+            }
+
+            .stat-value.red {
+                color: #F7C1C1;
+            }
+
+            .stat-value.amber {
+                color: #FAC775;
+            }
+        }
+
+        .battle-section {
+            background: var(--color-background-primary);
+            border: 0.5px solid var(--color-border-tertiary);
+            border-radius: var(--border-radius-lg);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .battle-label {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .battle-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-win {
+            background: #EAF3DE;
+            border: 0.5px solid #97C459;
+            color: #27500A;
+            padding: 8px 18px;
+            border-radius: var(--border-radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-win:hover {
+            background: #C0DD97;
+        }
+
+        .btn-lose {
+            background: #FCEBEB;
+            border: 0.5px solid #F09595;
+            color: #791F1F;
+            padding: 8px 18px;
+            border-radius: var(--border-radius-md);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-lose:hover {
+            background: #F7C1C1;
+        }
+
+        .btn-undo {
+            background: transparent;
+            border: 0.5px solid var(--color-border-secondary);
+            color: var(--color-text-secondary);
+            padding: 8px 14px;
+            border-radius: var(--border-radius-md);
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .btn-undo:hover {
+            background: var(--color-background-secondary);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .btn-win {
+                background: #173404;
+                border-color: #3B6D11;
+                color: #C0DD97;
+            }
+
+            .btn-win:hover {
+                background: #27500A;
+            }
+
+            .btn-lose {
+                background: #501313;
+                border-color: #A32D2D;
+                color: #F7C1C1;
+            }
+
+            .btn-lose:hover {
+                background: #791F1F;
+            }
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .history-title {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .history-empty {
+            font-size: 13px;
+            color: var(--color-text-tertiary);
+            padding: 1rem 0;
+            text-align: center;
+        }
+
+        .day-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 0.5px solid var(--color-border-tertiary);
+            gap: 12px;
+        }
+
+        .day-row:last-child {
+            border-bottom: none;
+        }
+
+        .day-date {
+            font-size: 13px;
+            color: var(--color-text-secondary);
+            min-width: 90px;
+        }
+
+        .day-bar-wrap {
+            flex: 1;
+            display: flex;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            background: var(--color-background-secondary);
+            gap: 1px;
+        }
+
+        .day-bar-win {
+            background: #639922;
+            height: 100%;
+        }
+
+        .day-bar-loss {
+            background: #E24B4A;
+            height: 100%;
+        }
+
+        .day-stats {
+            display: flex;
+            gap: 8px;
+            font-size: 13px;
+            min-width: 80px;
+            justify-content: flex-end;
+        }
+
+        .win-text {
+            color: #3B6D11;
+            font-weight: 500;
+        }
+
+        .lose-text {
+            color: #A32D2D;
+            font-weight: 500;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .win-text {
+                color: #97C459;
+            }
+
+            .lose-text {
+                color: #F09595;
+            }
+        }
+
+        .rate-pill {
+            font-size: 11px;
+            padding: 2px 7px;
+            border-radius: 10px;
+            background: var(--color-background-secondary);
+            color: var(--color-text-secondary);
+            min-width: 40px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="tracker" id="app">
+        <p style="color: var(--color-text-secondary); font-size: 14px; padding: 2rem 0; text-align: center;">
+            Loading your battle record...
+        </p>
+    </div>
+
+    <script>
+        const STORAGE_KEY = "pokemon-champions-tracker-v1";
+
+        function getTodayKey() {
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDate(isoKey) {
+            const d = new Date(isoKey + "T12:00:00");
+            return d.toLocaleDateString("en-US", { month: "short", day: "numeric", weekday: "short" });
+        }
+
+        let data = {};
+        let lastAction = null;
+
+        function loadData() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) data = JSON.parse(saved);
+            } catch (e) { data = {}; }
+        }
+
+        function saveData() {
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) { }
+        }
+
+        function calcStats() {
+            let tw = 0, tl = 0, streak = 0, countingStreak = true;
+            const keys = Object.keys(data).sort().reverse();
+            for (const k of keys) {
+                tw += data[k].w;
+                tl += data[k].l;
+                if (countingStreak) {
+                    if (data[k].w > data[k].l) streak += (data[k].w - data[k].l);
+                    else countingStreak = false;
+                }
+            }
+            const total = tw + tl;
+            const rate = total > 0 ? Math.round((tw / total) * 100) : 0;
+            return { tw, tl, total, rate, streak };
+        }
+
+        function render() {
+            const todayKey = getTodayKey();
+            const today = data[todayKey] || { w: 0, l: 0 };
+            const s = calcStats();
+            const keys = Object.keys(data).sort().reverse().slice(0, 14);
+
+            document.getElementById("app").innerHTML = `
+        <div class="header">
+          <div class="header-title">Battle Log</div>
+          <div class="header-date">${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Win rate</div>
+            <div class="stat-value ${s.rate >= 50 ? 'green' : 'red'}">${s.rate}%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total battles</div>
+            <div class="stat-value">${s.total}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Win streak</div>
+            <div class="stat-value amber">${s.streak}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Today</div>
+            <div class="stat-value">${today.w}W / ${today.l}L</div>
+          </div>
+        </div>
+
+        <div class="battle-section">
+          <div class="battle-label">Log a battle for today</div>
+          <div class="battle-row">
+            <button class="btn-win" onclick="logBattle('w')">+ Win</button>
+            <button class="btn-lose" onclick="logBattle('l')">+ Loss</button>
+            <div style="flex:1"></div>
+            <button class="btn-undo" onclick="undoLast()">Undo</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="history-header">
+            <div class="history-title">Recent days</div>
+          </div>
+          ${keys.length === 0
+                    ? '<div class="history-empty">No battles logged yet. Start battling!</div>'
+                    : keys.map(k => {
+                        const d = data[k];
+                        const t = d.w + d.l;
+                        const wPct = t > 0 ? Math.round((d.w / t) * 100) : 0;
+                        const lPct = 100 - wPct;
+                        return `
+                  <div class="day-row">
+                    <div class="day-date">${k === todayKey ? 'Today' : formatDate(k)}</div>
+                    <div class="day-bar-wrap">
+                      ${d.w > 0 ? `<div class="day-bar-win" style="width:${wPct}%"></div>` : ''}
+                      ${d.l > 0 ? `<div class="day-bar-loss" style="width:${lPct}%"></div>` : ''}
+                    </div>
+                    <div class="day-stats">
+                      <span class="win-text">${d.w}W</span>
+                      <span class="lose-text">${d.l}L</span>
+                    </div>
+                    <div class="rate-pill">${t > 0 ? wPct + '%' : '—'}</div>
+                  </div>`;
+                    }).join('')
+                }
+        </div>
+      `;
+        }
+
+        function logBattle(type) {
+            const k = getTodayKey();
+            if (!data[k]) data[k] = { w: 0, l: 0 };
+            data[k][type]++;
+            lastAction = { key: k, type };
+            saveData();
+            render();
+        }
+
+        function undoLast() {
+            if (!lastAction) return;
+            const { key, type } = lastAction;
+            if (data[key] && data[key][type] > 0) {
+                data[key][type]--;
+                if (data[key].w === 0 && data[key].l === 0) delete data[key];
+                lastAction = null;
+                saveData();
+                render();
+            }
+        }
+
+        loadData();
+        render();
+    </script>
+</body>
+
+</html>
